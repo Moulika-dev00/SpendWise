@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpendWise", "SpendWise\SpendWise.csproj", "{EF0560DC-125E-4CCC-BBA1-63088281F34B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EF0560DC-125E-4CCC-BBA1-63088281F34B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF0560DC-125E-4CCC-BBA1-63088281F34B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF0560DC-125E-4CCC-BBA1-63088281F34B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF0560DC-125E-4CCC-BBA1-63088281F34B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B7D09C95-F579-4F6A-BE9F-3CB63377D6C7}
+	EndGlobalSection
+EndGlobal
