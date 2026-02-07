@@ -107,5 +107,5 @@ SpendWise/
 
 ## Screenshots
 
-<img src="screenshots/main_window.png" width="250"/>
-<img src="screenshots/history_window.png" width="250"/>
+<img src="SpendWise/screenshots/main window.png" width="250"/>
+<img src="SpendWise/screenshots/history window.png" width="250"/>
