@@ -20,7 +20,6 @@ namespace SpendWise
     public partial class HistoryWindow : Window
     {
         List<Transaction> allTransactions;
-
         internal HistoryWindow(List<Transaction> transactions)
         {
             InitializeComponent();
@@ -28,10 +27,12 @@ namespace SpendWise
             .Select(t => new Transaction
              {
                  Amount = t.Amount,
+                 OriginalAmount = t.OriginalAmount,
                  Description = t.Description,
                  Date = t.Date,
                  IsIncome = t.IsIncome,
-                 Currency = t.Currency
+                 Currency = t.Currency,
+                 Category = t.Category
              })
              .ToList();
 
@@ -50,6 +51,7 @@ namespace SpendWise
         }
         void MonthChanged(object sender, EventArgs e)
         {
+           
             IncomeList.Items.Clear();
             ExpenseList.Items.Clear();
 
@@ -70,26 +72,15 @@ namespace SpendWise
             foreach (var e2 in expenses)
                 ExpenseList.Items.Add(e2);
 
-            var incomeTotals = incomes
-                .GroupBy(t => t.Currency)
-                .Select(g => $"{g.Key}: {g.Sum(x => x.Amount)}");
+            decimal totalIncomeINR = incomes.Sum(t => t.Amount);
+            decimal totalExpenseINR = expenses.Sum(t => t.Amount);
+            decimal netINR = totalIncomeINR - totalExpenseINR;
 
-            var expenseTotals = expenses
-                .GroupBy(t => t.Currency)
-                .Select(g => $"{g.Key}: {g.Sum(x => x.Amount)}");
+            IncomeTotalText.Text = $"Total Income:\nINR  (₹): {totalIncomeINR:F2}";
+            ExpenseTotalText.Text = $"Total Expense:\nINR  (₹): {totalExpenseINR:F2}";
+            NetTotalText.Text = $"Net Balance:\nINR  (₹): {netINR:F2}";
 
-            IncomeTotalText.Text = "Total Income:\n" + string.Join("\n", incomeTotals);
-            ExpenseTotalText.Text = "Total Expense:\n" + string.Join("\n", expenseTotals);
-
-            var netTotals = monthData
-                .GroupBy(t => t.Currency)
-                .Select(g =>
-                {
-                     decimal net = g.Sum(t => t.IsIncome ? t.Amount : -t.Amount);
-                     return $"{g.Key}: {net}";
-               });
-
-                NetTotalText.Text = "Net Balance:\n" + string.Join("\n", netTotals);
+            RefreshUI();
         }
         void DeleteSelected_Click(object sender, RoutedEventArgs e)
         {
@@ -104,9 +95,9 @@ namespace SpendWise
             }
 
             allTransactions.Remove(selected);
-            TransactionStorage.Save(allTransactions);
+            TransactionStorage.SaveLedger(allTransactions);
 
-            MonthChanged(null, null); // refresh view
+            RefreshUI();
         }
         void ClearMonth_Click(object sender, RoutedEventArgs e)
         {
@@ -126,15 +117,63 @@ namespace SpendWise
                 .Where(t => t.Date.ToString("MMMM yyyy") != selectedMonth)
                 .ToList();
 
-            TransactionStorage.Save(allTransactions);
+            TransactionStorage.SaveLedger(allTransactions);
 
             LoadMonths();
-            MonthChanged(null, null);
+
+            if (MonthBox.Items.Count > 0)
+                MonthBox.SelectedIndex = 0;
+
+            RefreshUI();
         }
 
         void Close_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
+        private void RefreshUI()
+        {
+            if (MonthBox.SelectedItem == null)
+            {
+                IncomeList.Items.Clear();
+                ExpenseList.Items.Clear();
+                IncomeTotalText.Text = "";
+                ExpenseTotalText.Text = "";
+                NetTotalText.Text = "";
+                return;
+            }
+
+            string selectedMonth = MonthBox.SelectedItem.ToString();
+
+            var monthData = allTransactions
+                .Where(t => t.Date.ToString("MMMM yyyy") == selectedMonth)
+                .ToList();
+    
+            IncomeList.Items.Clear();
+            ExpenseList.Items.Clear();
+
+            foreach (var i in monthData.Where(t => t.IsIncome))
+                IncomeList.Items.Add(i);
+
+            foreach (var e in monthData.Where(t => !t.IsIncome))
+                ExpenseList.Items.Add(e);
+
+            // totals
+            decimal totalIncomeINR = monthData
+                  .Where(t => t.IsIncome)
+                  .Sum(t => t.Amount);
+
+            decimal totalExpenseINR = monthData
+                .Where(t => !t.IsIncome)
+                .Sum(t => t.Amount);
+
+            decimal netINR = totalIncomeINR - totalExpenseINR;
+
+            IncomeTotalText.Text = $"Total Income:\nINR (₹): {totalIncomeINR:F2}";
+            ExpenseTotalText.Text = $"Total Expense:\nINR (₹): {totalExpenseINR:F2}";
+            NetTotalText.Text = $"Net Balance:\nINR (₹): {netINR:F2}";
+
+        }
     }
+
 }

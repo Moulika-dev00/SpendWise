@@ -3,29 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.WPF;
 
 namespace SpendWise
 {
     public partial class MainWindow : Window
     {
+        List<Transaction> ledgerTransactions = new List<Transaction>();
+        List<Transaction> sessionTransactions = new List<Transaction>();
+
         public MainWindow()
         {
             InitializeComponent();
-            ledgerTransactions = TransactionStorage.Load();
 
-            sessionTransactions = ledgerTransactions
-                .Select(t => t.Clone())
-                .ToList();
+            DatePickerBox.SelectedDate = DateTime.Now;
+
+            ledgerTransactions = TransactionStorage.LoadLedger();
+            sessionTransactions = TransactionStorage.LoadActive();
 
             UpdateBalanceAndView();
         }
 
-        List<Transaction> ledgerTransactions = new List<Transaction>(); // history
-        List<Transaction> sessionTransactions = new List<Transaction>(); // calculator
-
-
-        // balance per currency
-        Dictionary<string, decimal> balances = new Dictionary<string, decimal>();
 
         private void AddTransaction_Click(object sender, RoutedEventArgs e)
         {
@@ -59,66 +60,148 @@ namespace SpendWise
             string currency =
                 ((ComboBoxItem)CurrencyBox.SelectedItem).Content.ToString();
 
+            string category =
+                ((ComboBoxItem)CategoryBox.SelectedItem)?.Content?.ToString() ?? "Other";
+
+            var selectedDate = DatePickerBox.SelectedDate ?? DateTime.Now;
+
+            DateTime finalDate;
+            if (selectedDate.Date == DateTime.Now.Date)
+            {
+                finalDate = DateTime.Now;
+            }
+            else
+            {
+                finalDate = selectedDate.Date;
+            }
+
+            decimal converted = ConvertToINR(amount, currency);
+
             var transaction = new Transaction
             {
-                Amount = amount,
+                OriginalAmount = amount,
+                Amount = converted,
                 Description = DescBox.Text,
-                Date = DateTime.Now,
+                Date = finalDate,
                 IsIncome = isIncome,
-                Currency = currency
+                Currency = currency,
+                Category = category
             };
 
             ledgerTransactions.Add(transaction.Clone());
-            TransactionStorage.Save(ledgerTransactions);
+            TransactionStorage.SaveLedger(ledgerTransactions);
 
             sessionTransactions.Add(transaction);
+            TransactionStorage.SaveActive(sessionTransactions);
+
             UpdateBalanceAndView();
 
             AmountBox.Clear();
             DescBox.Clear();
+            CategoryBox.SelectedIndex = -1;
         }
 
         private void UpdateBalanceAndView()
         {
-            balances.Clear();
+            ApplyFilter();
 
-            foreach (var t in sessionTransactions)
+            if (ledgerTransactions.Count > 0)
             {
-                if (!balances.ContainsKey(t.Currency))
-                    balances[t.Currency] = 0;
-
-                balances[t.Currency] += t.IsIncome ? t.Amount : -t.Amount;
+                SpendingInsightText.Text =
+                    InsightService.GetMonthlyComparison(ledgerTransactions);
+                   
+                SavingsInsightText.Text =
+                    InsightService.GetSavingsInsight(ledgerTransactions);
+            }
+            else
+            {
+                SpendingInsightText.Text = "";
+                SavingsInsightText.Text = "";
             }
 
-            // show balances of all currencies
-            TotalText.Text = balances.Count == 0
-                ? "Balance: 0"
-                : string.Join("   ", balances.Select(b => $"{b.Key}: {b.Value}"));
+            decimal totalBalance = ledgerTransactions
+                .Sum(t => t.IsIncome ? t.Amount : -t.Amount);
+            CardBalanceText.Text = $"₹{totalBalance:F2}";
 
-            ApplyFilter();
+            var topCategory = ledgerTransactions
+                .Where(t => !t.IsIncome)
+                .GroupBy(t => t.Category)
+                .OrderByDescending(g => g.Sum(x => x.Amount))
+                .FirstOrDefault();
+
+            if (topCategory != null)
+            {
+                CardCategoryText.Text =
+                    InsightService.GetTopCategory(ledgerTransactions)
+                    .Replace("Top Category: ", "");
+            }
+            else
+            {
+                CardCategoryText.Text = "No data";
+            }
+
+            var latestMonth = ledgerTransactions
+                .GroupBy(t => new { t.Date.Year, t.Date.Month })
+                .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+                .LastOrDefault();
+
+            decimal monthlySavings = 0;
+
+            if (latestMonth != null)
+            {
+                decimal income = latestMonth.Where(t => t.IsIncome).Sum(t => t.Amount);
+                decimal expense = latestMonth.Where(t => !t.IsIncome).Sum(t => t.Amount);
+
+                monthlySavings = income - expense;
+            }
+
+            CardSavingsText.Text =
+              monthlySavings >= 0
+              ? $"↑ ₹{monthlySavings:F2}"
+              : $"↓ ₹{Math.Abs(monthlySavings):F2}";
+
+            CardSavingsText.Foreground =
+                monthlySavings >= 0
+                ? Brushes.Green
+                : Brushes.Red;
+
+            LoadCategoryChart();
+            LoadMonthlyChart();
         }
 
         private void ApplyFilter()
         {
-            if (FilterBox.SelectedItem == null) return;
-            if (TransactionList == null) return;
+            if (FilterBox.SelectedItem == null || TransactionList == null)
+                return;
 
             TransactionList.Items.Clear();
 
             string filter =
                 ((ComboBoxItem)FilterBox.SelectedItem).Content.ToString();
 
+            string categoryFilter =
+                ((ComboBoxItem)CategoryFilterBox.SelectedItem)?.Content?.ToString();
+
             IEnumerable<Transaction> query = sessionTransactions;
 
             if (filter == "Income")
-                query = sessionTransactions.Where(t => t.IsIncome);
+                query = query.Where(t => t.IsIncome);
             else if (filter == "Expense")
-                query = sessionTransactions.Where(t => !t.IsIncome);
+                query = query.Where(t => !t.IsIncome);
+
+            if (!string.IsNullOrEmpty(categoryFilter) && categoryFilter != "All")
+                query = query.Where(t => t.Category == categoryFilter);
 
             var filteredList = query.ToList();
 
             foreach (var t in filteredList)
                 TransactionList.Items.Add(t);
+
+            if (filteredList.Count == 0)
+            {
+                ListTotalText.Text = "No data";
+                return;
+            }
 
             if (filter == "Income")
                 ListTotalText.Text = $"Income Total: {filteredList.Sum(t => t.Amount)}";
@@ -144,21 +227,14 @@ namespace SpendWise
             Transaction selected = (Transaction)TransactionList.SelectedItem;
 
             sessionTransactions.Remove(selected);
-            ledgerTransactions.RemoveAll(t =>
-                 t.Amount == selected.Amount &&
-                 t.Description == selected.Description &&
-                 t.Date == selected.Date &&
-                 t.Currency == selected.Currency &&
-                 t.IsIncome == selected.IsIncome
-            );
-            TransactionStorage.Save(ledgerTransactions);
+            TransactionStorage.SaveActive(sessionTransactions);
 
             UpdateBalanceAndView();
         }
 
         private void ClearAll_Click(object sender, RoutedEventArgs e)
         {
-            if (TransactionList.Items.Count == 0)
+            if (sessionTransactions.Count == 0)
             {
                 MessageBox.Show("No transactions to clear");
                 return;
@@ -172,31 +248,108 @@ namespace SpendWise
 
             if (confirm == MessageBoxResult.Yes)
             {
-               
+
                 sessionTransactions.Clear();
+                TransactionStorage.SaveActive(sessionTransactions);
                 UpdateBalanceAndView();
             }
         }
         private void OpenHistory_Click(object sender, RoutedEventArgs e)
         {
-            HistoryWindow hw = new HistoryWindow(
-                TransactionStorage.Load()
-            );
+            var ledger = TransactionStorage.LoadLedger();
+
+            if (ledger.Count == 0 && sessionTransactions.Count > 0)
+            {
+                ledger = sessionTransactions
+                    .Select(t => t.Clone())
+                    .ToList();
+
+                TransactionStorage.SaveLedger(ledger);
+            }
+
+            HistoryWindow hw = new HistoryWindow(ledger);
             hw.Owner = this;
             hw.ShowDialog();
-            ReloadFromLedger();
-        }
-        private void ReloadFromLedger()
-        {
-            ledgerTransactions = TransactionStorage.Load();
 
-            sessionTransactions = ledgerTransactions
-                .Select(t => t.Clone())
-                .ToList();
+            ledgerTransactions = TransactionStorage.LoadLedger();
+
+            if (ledgerTransactions.Count == 0 && sessionTransactions.Count > 0)
+            {
+                ledgerTransactions = sessionTransactions
+                    .Select(t => t.Clone())
+                    .ToList();
+
+                TransactionStorage.SaveLedger(ledgerTransactions);
+            }
 
             UpdateBalanceAndView();
         }
+       
+        private void LoadCategoryChart()
+        {
+            var expenses = ledgerTransactions.Where(t => !t.IsIncome);
 
+            if (!expenses.Any())
+            {
+                CategoryChart.Series = new List<ISeries>();
+                return;
+            }
 
+            CategoryChart.Series = expenses
+                .GroupBy(t => t.Category)
+                .Select(g => new PieSeries<double>
+                {
+                    Values = new double[] { (double)g.Sum(x => x.Amount) },
+                    Name = g.Key
+                })
+                .ToList<ISeries>();
+        }
+        private void LoadMonthlyChart()
+        {
+            var monthly = ledgerTransactions
+                .Where(t => !t.IsIncome)
+                .GroupBy(t => new { t.Date.Year, t.Date.Month })
+                .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+                .Select(g => new
+                {
+                    Month = $"{g.Key.Month}/{g.Key.Year}",
+                    Total = g.Sum(x => x.Amount)
+                })
+                .ToList();
+
+            if (!monthly.Any())
+            {
+                MonthlyChart.Series = new List<ISeries>();
+                return;
+            }
+
+            MonthlyChart.Series = new ISeries[]
+            {
+              new ColumnSeries<double>
+              {
+                Values = monthly.Select(x => (double)x.Total).ToArray(),
+                Name = "Expenses"
+              }
+            };
+
+            MonthlyChart.XAxes = new[]
+            {
+               new Axis
+               {
+                  Labels = monthly.Select(x => x.Month).ToArray()
+               }
+            };
+        }
+        private decimal ConvertToINR(decimal amount, string currency)
+        {
+            if (currency.Contains("USD"))
+                return amount * 93.2884m;
+
+            if (currency.Contains("EUR"))
+                return amount * 107.515m;
+
+            return amount;
+        }
+     
     }
 }

@@ -3,6 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="SpendWise"
         Height="480"
@@ -32,155 +34,270 @@
         </Style>
     </Window.Resources>
 
-
-    <Grid Margin="15">
-        <Border x:Name="MainBorder"
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="15">
+            <Border x:Name="MainBorder"
                 Background="AliceBlue"
                 CornerRadius="10"
                 Padding="15">
 
-            <Grid>
-                <!-- MAIN ROWS -->
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                <Grid>
+                    <!-- MAIN ROWS -->
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <!-- Title -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Cards -->
+                        <RowDefinition Height="*"/>
+                        <!-- Content-->
+                        <RowDefinition Height="Auto"/>
+                        <!--Charts-->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Insights -->
 
-                <!-- TITLE -->
-                <TextBlock Grid.Row="0"
-                           Text="SpendWise – Personal Finance Tracker"
+                    </Grid.RowDefinitions>
+
+                    <!-- TITLE -->
+                    <TextBlock Grid.Row="0"
+                           Text="Personal Finance Analyzer"
                            FontSize="22"
                            FontWeight="Bold"
                            HorizontalAlignment="Left"
                            Margin="0,-5,0,10" Width="810"/>
 
-                <TextBlock Text="🕒"
-                           FontSize="15"
+                    <TextBlock Text="🕒"
+                           FontSize="16"
                            Cursor="Hand"
                            HorizontalAlignment="Right"
-                           Margin="0,29,10,332"
+                           Margin="0,5,10,0"
                            ToolTip="History"
-                           MouseLeftButtonUp="OpenHistory_Click" Grid.RowSpan="3"/>
+                           MouseLeftButtonUp="OpenHistory_Click" />
 
 
-                <!-- BALANCE ROW -->
-                <TextBlock
-                           x:Name="TotalText"
-                           Text="Balance: ₹0"
-                           FontSize="16"
-                           FontWeight="Bold"
-                           Foreground="#16A34A"
-                           HorizontalAlignment="Right"
-                           Margin="0,30,65,16" Grid.RowSpan="2"/>
+                    <!-- BALANCE ROW -->
 
-                <!-- CONTENT -->
-                <Grid Grid.Row="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="260"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                    <UniformGrid Grid.Row="1" Columns="3" Margin="0,20,0,20">
 
-                    <!-- LEFT : INPUTS -->
-                    <StackPanel Grid.Column="0" Margin="0,0,15,0">
+                        <!-- TOTAL BALANCE -->
+                        <Border Background="#E0F2FE" CornerRadius="12" Padding="12" Margin="6">
+                            <StackPanel>
+                                <TextBlock Text="Total Balance"
+                                           FontWeight="SemiBold"
+                                           Foreground="#1E3A8A"/>
+                                <TextBlock x:Name="CardBalanceText"
+                                           FontSize="18"
+                                           FontWeight="Bold"
+                                           Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </Border>
 
-                        <TextBlock Text="Add Transaction"
-                                   FontSize="16"
-                                   FontWeight="Bold"
-                                   Margin="0,0,0,10"/>
+                        <!-- TOP CATEGORY -->
+                        <Border Background="#FEF3C7" CornerRadius="12" Padding="12" Margin="6">
+                            <StackPanel>
+                                <TextBlock Text="Top Expense Category"
+                                           FontWeight="SemiBold"
+                                           Foreground="#92400E"/>
+                                <TextBlock x:Name="CardCategoryText"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Margin="0,5,0,0"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
 
-                        <TextBlock Text="Amount"/>
-                        <TextBox x:Name="AmountBox" 
-                                 Height="30" Margin="0,0,0,8"/>
+                        <!-- MONTHLY SAVINGS -->
+                        <Border Background="#DCFCE7" CornerRadius="12" Padding="12" Margin="6">
+                            <StackPanel>
+                                <TextBlock Text="This Month Savings"
+                                           FontWeight="SemiBold"
+                                           Foreground="#065F46"/>
+                                <TextBlock x:Name="CardSavingsText"
+                                           FontSize="18"
+                                           FontWeight="Bold"
+                                           Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </Border>
 
-                        <TextBlock Text="Description"/>
-                        <TextBox x:Name="DescBox"
-                                 Margin="0,0,0,8"
-                                 Padding="6"/>
+                    </UniformGrid>
 
-                        <TextBlock Text="Type"/>
-                        <ComboBox x:Name="TypeBox" Margin="0,0,0,12">
-                            <ComboBoxItem Content="Income"/>
-                            <ComboBoxItem Content="Expense"/>
-                        </ComboBox>
+                    <!-- CONTENT -->
+                    <Grid Grid.Row="2" Margin="0,20,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="260"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                        <TextBlock Text="Currency"/>
+                        <!-- LEFT : INPUTS -->
+                        <StackPanel Grid.Column="0" Margin="0,0,15,0">
 
-                        <ComboBox x:Name="CurrencyBox"
-                                  Margin="0,0,0,12">
-                            <ComboBoxItem Content="INR (₹)" IsSelected="True"/>
-                            <ComboBoxItem Content="USD ($)"/>
-                            <ComboBoxItem Content="EUR (€)"/>
-                        </ComboBox>
+                            <TextBlock Text="Add Transaction"
+                                       FontSize="16"
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,10"/>
+
+                            <TextBlock Text="Amount"/>
+                            <TextBox x:Name="AmountBox" 
+                                     Height="30" Margin="0,0,0,8"/>
+
+                            <TextBlock Text="Description"/>
+                            <TextBox x:Name="DescBox"
+                                     Margin="0,0,0,8"
+                                     Padding="6"/>
+
+                            <TextBlock Text="Date"/>
+                            <DatePicker x:Name="DatePickerBox"
+                                        SelectedDate="{x:Static sys:DateTime.Now}"
+                                        Height="22"
+                                        Margin="0,0,0,8"/>
+
+                            <TextBlock Text="Category"/>
+                            <ComboBox x:Name="CategoryBox" Height="30" Margin="0,0,0,8">
+                                <ComboBoxItem Content="Food"/>
+                                <ComboBoxItem Content="Travel"/>
+                                <ComboBoxItem Content="Bills"/>
+                                <ComboBoxItem Content="Shopping"/>
+                                <ComboBoxItem Content="Other"/>
+                            </ComboBox>
+
+                            <TextBlock Text="Type"/>
+                            <ComboBox x:Name="TypeBox" Height="25" Margin="0,0,0,12">
+                                <ComboBoxItem Content="Income"/>
+                                <ComboBoxItem Content="Expense"/>
+                            </ComboBox>
+
+                            <TextBlock Text="Currency"/>
+
+                            <ComboBox x:Name="CurrencyBox"
+                                      Height="25"
+                                      Margin="0,0,0,12">
+                                <ComboBoxItem Content="INR (₹)" IsSelected="True"/>
+                                <ComboBoxItem Content="USD ($)"/>
+                                <ComboBoxItem Content="EUR (€)"/>
+                            </ComboBox>
 
 
-                        <Button Content="Add Transaction"
+                            <Button Content="Add Transaction"
                                 Height="36"
+                                Margin="0,10,0,0"
                                 Background="#2563EB"
                                 Foreground="White"
                                 Click="AddTransaction_Click"/>
 
 
-                    </StackPanel>
+                        </StackPanel>
 
-                    <!-- RIGHT : LIST -->
-                    <Grid Grid.Column="1">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                        <!-- RIGHT : LIST -->
+                        <Grid Grid.Column="1"  Margin="25,0,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                        <DockPanel Grid.Row="0" Margin="0,0,0,6">
-                            <ComboBox x:Name="FilterBox"
+                            <DockPanel Grid.Row="0" Margin="0,0,0,6">
+                                <ComboBox x:Name="FilterBox"
                                       Width="120"
                                       DockPanel.Dock="Left"
                                       SelectionChanged="FilterBox_SelectionChanged">
-                                <ComboBoxItem Content="All" IsSelected="True"/>
-                                <ComboBoxItem Content="Income"/>
-                                <ComboBoxItem Content="Expense"/>
-                            </ComboBox>
+                                    <ComboBoxItem Content="All" IsSelected="True"/>
+                                    <ComboBoxItem Content="Income"/>
+                                    <ComboBoxItem Content="Expense"/>
+                                </ComboBox>
+
+                                <ComboBox x:Name="CategoryFilterBox"
+                                      Width="120"
+                                      Margin="10,0,0,0"
+                                      SelectionChanged="FilterBox_SelectionChanged">
+                                    <ComboBoxItem Content="All" IsSelected="True"/>
+                                    <ComboBoxItem Content="Food"/>
+                                    <ComboBoxItem Content="Travel"/>
+                                    <ComboBoxItem Content="Bills"/>
+                                    <ComboBoxItem Content="Shopping"/>
+                                    <ComboBoxItem Content="Other"/>
+                                </ComboBox>
 
 
-                            <TextBlock x:Name="ListTotalText"
+                                <TextBlock x:Name="ListTotalText"
                                        DockPanel.Dock="Right"
                                        Margin="12,0,0,0"
                                        FontWeight="Bold"/>
-                        </DockPanel>
+                            </DockPanel>
 
-                        <!-- LIST -->
-                        <ListBox x:Name="TransactionList"
+                            <!-- LIST -->
+                            <ListBox x:Name="TransactionList"
                                  Grid.Row="1"
                                  Padding="10"
                                  Background="#FAFAFA"
                                  ScrollViewer.VerticalScrollBarVisibility="Auto"/>
 
-                        <!-- BOTTOM RIGHT ACTIONS -->
-                        <StackPanel Grid.Row="2"
+                            <!-- BOTTOM RIGHT ACTIONS -->
+                            <StackPanel Grid.Row="2"
                                     Orientation="Horizontal"
                                     HorizontalAlignment="Right"
                                     Margin="0,10,0,0">
 
-                            <Button Content="Delete Selected"
+                                <Button Content="Delete Selected"
                                     Width="150"
                                     Height="35"
                                     Background="#D32F2F"
                                     Foreground="White"
                                     Click="DeleteExpense_Click"/>
 
-                            <Button Content="Clear All"
+                                <Button Content="Clear All"
                                     Width="100"
                                     Height="35"
                                     Margin="8,0,0,0"
                                     Background="#9CA3AF"
                                     Foreground="Black"
                                     Click="ClearAll_Click"/>
-                        </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
+
+                    <Grid Grid.Row="3" Margin="0,25,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- PIE CHART -->
+                        <lvc:PieChart x:Name="CategoryChart"
+                                      Grid.Column="0"
+                                      Height="200"/>
+
+                        <!-- LINE CHART -->
+                        <lvc:CartesianChart x:Name="MonthlyChart"
+                                           Grid.Column="1"
+                                           Height="200"/>
+                    </Grid>
+
+
+                    <Grid Grid.Row="4" Margin="0,35,0,0" HorizontalAlignment="Left">
+
+                        <Border Background="#ECFDF5"
+                                CornerRadius="12"
+                                Padding="15"
+                                Width="300">
+
+
+                            <StackPanel>
+                               
+                                <TextBlock x:Name="SpendingInsightText"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="#DC2626"
+                                           Margin="0,0,0,10"/>
+
+                                <TextBlock x:Name="SavingsInsightText"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="#16A34A"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
                 </Grid>
-            </Grid>
-        </Border>
-
-
-    </Grid>
+            </Border>
+        </Grid>
+    </ScrollViewer>
 </Window>
