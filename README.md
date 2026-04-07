@@ -1,4 +1,9 @@
-# SpendWise – Personal Finance & Expense Tracker 
+# SpendWise – Personal Finance Analytics Desktop App
+
+## Overview
+
+SpendWise is a desktop-based **Personal finance analytics application** built using WPF and C#.
+It helps users track income and expenses while providing **insights, visual analytics, structured financial history**.
 
 ## Problem
 
@@ -7,6 +12,7 @@ Once cleared or forgotten, there is **no reliable monthly history**, making it h
 
 - Review past spending  
 - Compare income vs expenses  
+- Difficulty analyzing spending patterns  
 - Maintain financial discipline  
 
 ## Solution
@@ -18,6 +24,7 @@ It allows users to:
 - Track income and expenses in real time  
 - Persist transactions safely for long-term monthly analysis  
 - View clean, structured financial history without cluttering the main UI  
+- Analyze spending patterns through charts and insights
 
 
 ## Core Concept
@@ -39,8 +46,18 @@ SpendWise follows a **two-layer financial model**:
 
 ### Transaction Management
 - Add income and expense transactions
+- Category-based tracking
 - Support for multiple currencies
 - Real-time balance calculation
+
+### Analytics & Insights
+- Top expense category detection
+- Monthly spending comparison
+- Savings increase/decrease tracking
+
+### Data Visualization
+- Expense distribution by category (Pie Chart)
+- Monthly expense trends (Chart)
 
 ### History System
 - Dedicated **History screen**
@@ -56,6 +73,7 @@ SpendWise follows a **two-layer financial model**:
 
 ### Clean UX
 - Minimal desktop UI
+- Dashboard-style summary cards (Balance, Category, Savings)
 - History accessible via single icon (🕒)
 - No clutter in main screen
 
@@ -65,6 +83,7 @@ SpendWise follows a **two-layer financial model**:
 - C#
 - WPF (Windows Presentation Foundation)
 - .NET
+- LiveCharts (for data visualization)
 - Local data persistence using JSON (System.Text.Json)
 
 
@@ -96,20 +115,18 @@ SpendWise/
 ├── HistoryWindow.xaml
 ├── Transaction.cs
 ├── TransactionStorage.cs
+├── InsightService.cs  
 ├── App.xaml
 ├── README.md
 
 ## Future Improvements
 
-- Monthly charts & visual analytics
-- Category-based expense tracking
-- Cloud sync 
+- Budget tracking & alerts
+- Advanced analytics
+- Cloud sync
 
 ## Screenshots
 
-<img src="SpendWise/screenshots/main window.png" width="250"/>
-<<<<<<< HEAD
-<img src="SpendWise/screenshots/history window.png" width="250"/>
-=======
-<img src="SpendWise/screenshots/history window.png" width="250"/>
->>>>>>> 4269c10f5fc03040c4a32ee62179955dc9799ace
+<img src="SpendWise/screenshots/main-window.png" Width="250"/>
+<img src="SpendWise/screenshots/main(1)-window.png" Width="250"/>
+<img src="SpendWise/screenshots/history window.png" Width="250"/>
