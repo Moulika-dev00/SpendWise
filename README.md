@@ -130,3 +130,40 @@ SpendWise/
 <img src="SpendWise/screenshots/main-window.png" Width="250"/>
 <img src="SpendWise/screenshots/main(1)-window.png" Width="250"/>
 <img src="SpendWise/screenshots/history window.png" Width="250"/>
+
+
+
+
+## QA Testing Documentation
+
+This project includes complete manual testing performed on the SpendWise application.
+
+### Test Design
+
+* Requirements
+* Test Scenarios
+* Bug Reports
+
+(Stored in Excel file: Test-design.xlsx inside QA-Testing folder)
+
+###  Test Execution
+
+* Test Cases
+* Test Coverage Report
+* Test Summary Report
+
+(Stored in Markdown files under Test-Execution folder)
+
+###  Testing Scope
+
+The application was tested for:
+
+* Expense and income management
+* Data validation and input handling
+* Business logic correctness
+* Data consistency and calculations
+* Filtering and analysis features
+
+### ✅ Outcome
+
+All major functionalities were tested successfully. Identified defects were fixed and retested. The application is stable and meets expected requirements.

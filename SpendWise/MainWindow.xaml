@@ -136,11 +136,15 @@
                                        Margin="0,0,0,10"/>
 
                             <TextBlock Text="Amount"/>
-                            <TextBox x:Name="AmountBox" 
+                            <TextBox x:Name="AmountBox"
+                                     AutomationProperties.AutomationId="AmountBox"
+                                     IsTabStop="True"
                                      Height="30" Margin="0,0,0,8"/>
 
                             <TextBlock Text="Description"/>
                             <TextBox x:Name="DescBox"
+                                     AutomationProperties.AutomationId="DescBox"
+                                     IsTabStop="True"
                                      Margin="0,0,0,8"
                                      Padding="6"/>
 
@@ -151,7 +155,11 @@
                                         Margin="0,0,0,8"/>
 
                             <TextBlock Text="Category"/>
-                            <ComboBox x:Name="CategoryBox" Height="30" Margin="0,0,0,8">
+                            <ComboBox x:Name="CategoryBox"
+                                      AutomationProperties.AutomationId="CategoryBox"
+                                      IsTabStop="True"
+                                      Height="30" Margin="0,0,0,8">
+                                <ComboBoxItem Content="select category"/>
                                 <ComboBoxItem Content="Food"/>
                                 <ComboBoxItem Content="Travel"/>
                                 <ComboBoxItem Content="Bills"/>
@@ -161,6 +169,7 @@
 
                             <TextBlock Text="Type"/>
                             <ComboBox x:Name="TypeBox" Height="25" Margin="0,0,0,12">
+                                <ComboBoxItem Content="select type"/>
                                 <ComboBoxItem Content="Income"/>
                                 <ComboBoxItem Content="Expense"/>
                             </ComboBox>
@@ -170,7 +179,8 @@
                             <ComboBox x:Name="CurrencyBox"
                                       Height="25"
                                       Margin="0,0,0,12">
-                                <ComboBoxItem Content="INR (₹)" IsSelected="True"/>
+                                <ComboBoxItem Content="select currency"/>
+                                <ComboBoxItem Content="INR (₹)"/>
                                 <ComboBoxItem Content="USD ($)"/>
                                 <ComboBoxItem Content="EUR (€)"/>
                             </ComboBox>

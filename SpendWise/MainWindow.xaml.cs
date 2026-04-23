@@ -29,12 +29,43 @@ namespace SpendWise
 
 
         private void AddTransaction_Click(object sender, RoutedEventArgs e)
+
+
+
         {
+
+            if (string.IsNullOrWhiteSpace(AmountBox.Text) ||
+                string.IsNullOrWhiteSpace(DescBox.Text) ||
+                TypeBox.SelectedItem == null ||
+                CategoryBox.SelectedItem == null ||
+                CurrencyBox.SelectedItem == null ||
+                ((ComboBoxItem)TypeBox.SelectedItem).Content.ToString() == "Select Type" ||
+                ((ComboBoxItem)CategoryBox.SelectedItem).Content.ToString() == "Select Category" ||
+                ((ComboBoxItem)CurrencyBox.SelectedItem).Content.ToString() == "Select Currency")
+            {
+                MessageBox.Show("Please enter required inputs");
+                return;
+            }
+
+
             if (!decimal.TryParse(AmountBox.Text, out decimal amount))
             {
                 MessageBox.Show("Enter valid amount");
                 return;
             }
+
+            if (amount <= 0)
+            {
+                MessageBox.Show("Amount must be greater than zero");
+                return;
+            }
+
+            if (amount > 1000000)
+            {
+                MessageBox.Show("Amount exceeds allowed limit");
+                return;
+            }
+
 
             if (string.IsNullOrWhiteSpace(DescBox.Text))
             {
@@ -42,17 +73,6 @@ namespace SpendWise
                 return;
             }
 
-            if (TypeBox.SelectedItem == null)
-            {
-                MessageBox.Show("Select Income or Expense");
-                return;
-            }
-
-            if (CurrencyBox.SelectedItem == null)
-            {
-                MessageBox.Show("Select currency");
-                return;
-            }
 
             bool isIncome =
                 ((ComboBoxItem)TypeBox.SelectedItem).Content.ToString() == "Income";
